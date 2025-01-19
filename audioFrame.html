@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      window.addEventListener("message", (event) => {
+        if (typeof event.data === "object" && event.data.type === "PLAY_AUDIO") {
+          const base64Audio = event.data.base64;
+          if (!base64Audio) return;
+
+          const audioUrl = "data:audio/mpeg;base64," + base64Audio;
+          const audio = new Audio(audioUrl);
+          audio.play();
+        }
+      });
+    </script>
+  </head>
+  <body></body>
+</html>
