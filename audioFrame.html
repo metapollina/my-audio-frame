@@ -5,17 +5,16 @@
     <script>
       let storedBase64 = null;
 
-      // We store the audio data when the parent sends a message
+      // Listen for messages from parent
       window.addEventListener("message", (event) => {
-        console.log("Iframe got message:", event.data);
-        if (event.data?.type === "PLAY_AUDIO") {
+        if (typeof event.data === "object" && event.data.type === "PLAY_AUDIO") {
           storedBase64 = event.data.base64;
           console.log("PLAY_AUDIO with length:", storedBase64.length);
-          // Do NOT call audio.play() automatically here.
+          // Do NOT call audio.play() here, or it will be blocked
         }
       });
 
-      // Called by a local button click inside the iframe
+      // Called when user clicks the button in this same iframe
       function onIframePlayButtonClick() {
         if (!storedBase64) {
           console.warn("No audio data received yet!");
@@ -26,12 +25,12 @@
 
         audio.play()
           .then(() => console.log("Iframe: Audio playback started!"))
-          .catch(err => console.error("Iframe: Audio playback blocked/failed:", err));
+          .catch(err => console.error("Iframe: Audio playback blocked or failed:", err));
       }
     </script>
   </head>
   <body>
-    <p>audioFrame loaded. Click “Load Audio” in parent to send data, then press “Play Audio” here:</p>
+    <p>audioFrame loaded. Once the parent sends MP3 data, click the button below to play it.</p>
     <button onclick="onIframePlayButtonClick()">Play Audio (Inside Iframe)</button>
   </body>
 </html>
