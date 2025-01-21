@@ -2,35 +2,43 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-
+    <title>audioFrame</title>
     <script>
+      // We'll store the latest base64 MP3 data from the parent here.
       let storedBase64 = null;
 
-      // This event listener receives messages from your Wix code
+      // Listen for postMessage from the parent (Wix).
       window.addEventListener("message", (event) => {
+        console.log("Iframe got message:", event.data);
         if (typeof event.data === "object" && event.data.type === "PLAY_AUDIO") {
           storedBase64 = event.data.base64;
           console.log("PLAY_AUDIO with length:", storedBase64.length);
-          // DO NOT auto-play here (blocked if no in-frame gesture).
+          // Do NOT auto-play here (it'll be blocked without an in-frame gesture).
         }
       });
 
-      // Called when user clicks the "Play Audio (Inside Iframe)" button
+      // Called when the user clicks "Play Audio" in THIS iframe.
+      // That local click is recognized as a valid gesture in the same frame.
       function onIframePlayButtonClick() {
         if (!storedBase64) {
-          console.warn("No audio data stored yet!");
+          console.warn("No audio data. The parent hasn't sent any MP3 yet!");
           return;
         }
+
         const audioUrl = "data:audio/mpeg;base64," + storedBase64;
         const audio = new Audio(audioUrl);
 
+        // Attempt playback
         audio.play()
-          .then(() => console.log("Iframe: Audio playback started!"))
-          .catch(err => console.error("Iframe: Audio playback blocked or failed:", err));
+          .then(() => {
+            console.log("Iframe: Audio playback started!");
+          })
+          .catch(err => {
+            console.error("Iframe: Audio playback blocked or failed:", err);
+          });
       }
 
-      // A function to let you download the same base64 as an MP3 file
-      // so you can open it in VLC/iTunes
+      // Optional: Let you download the MP3 for debugging (to confirm it’s valid).
       function onDownloadTestClick() {
         if (!storedBase64) {
           alert("No MP3 data to download yet!");
@@ -38,23 +46,25 @@
         }
         const mp3Url = "data:audio/mpeg;base64," + storedBase64;
 
-        // Create a temporary link to trigger download
         const link = document.createElement('a');
         link.href = mp3Url;
-        link.download = "test.mp3"; // The filename user sees
+        link.download = "test.mp3";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
         console.log("Download triggered for test.mp3");
       }
     </script>
   </head>
   <body>
-    <h3>audioFrame loaded. Steps:</h3>
+    <h3>audioFrame loaded</h3>
+    <p>Steps:</p>
     <ol>
-      <li>Wait for parent to send MP3 data (log appears in console).</li>
-      <li>Click "Play Audio" (inside this iframe) to attempt playback.</li>
-      <li>Or "Download Test" to save the file and check if it’s valid in VLC/iTunes.</li>
+      <li>Parent/Wix sends MP3 data to this iframe via postMessage.</li>
+      <li>You see "PLAY_AUDIO with length: XYZ" in console logs here.</li>
+      <li>Then click "Play Audio (Inside Iframe)" below to actually hear it.</li>
+      <li>If you want to debug the file itself, click "Download Test MP3".</li>
     </ol>
 
     <button onclick="onIframePlayButtonClick()">Play Audio (Inside Iframe)</button>
